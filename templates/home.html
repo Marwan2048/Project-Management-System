@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - SprintHub</title>
+    <link rel="stylesheet" href="{% static 'workflow/css/auth.css' %}">
+</head>
+<body class="dashboard-shell">
+    <header class="dashboard-header">
+        <div>
+            <p class="eyebrow">Welcome back, {{ user.first_name|default:user.username }}</p>
+            <h1>Here is a summary of your active workflows </h1>
+        </div>
+        <div class="header-actions">
+            <a id="test" href="#" class="btn-primary">+ New Project</a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-ghost">Log out</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="dashboard-content">
+        <section class="stats-grid">
+            <article class="stat-card">
+                <span class="stat-label">Total Active Projects</span>
+                <h2>{{ num_of_active_projects }}</h2>
+                
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Tasks Pending</span>
+                <h2>{{ num_of_tasks }}</h2>
+                
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Completed Projects</span>
+                <h2>{{ completed_projects }}</h2>
+            </article>
+        </section>
+
+        <section class="project-panel">
+            <div class="section-title">
+                <h2>Active Projects</h2>
+            </div>
+            <div class="project-grid">
+                {% for project in projects %}
+                    <article class="project-card">
+                        <div class="project-card-header">
+                            <span class="project-badge">{{ project.get_state_display }}</span>
+                        </div>
+                        <h3>{{ project.title }}</h3>
+                        <p class="project-meta">Due {{ project.deadline|date:"M d, Y" }}</p>
+                        <div class="project-card-footer">
+                            <span class="project-card-meta">Started {{ project.start_date|date:"M d, Y" }}</span>
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="empty-state">
+                        <p>You don't have any active projects yet.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

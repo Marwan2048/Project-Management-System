@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SprintHub{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'workflow/css/auth.css' %}">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="page-content">
+            <div class="brand-panel">
+                <div class="brand-logo">SprintHub</div>
+                <p class="brand-copy">Build your projects faster with clean task flow and a beautiful login experience.</p>
+            </div>
+
+            <div class="form-panel">
+                <div class="form-card">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

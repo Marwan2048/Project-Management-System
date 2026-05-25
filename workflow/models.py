@@ -10,7 +10,7 @@ class Project(models.Model):
     ]
     
     title = models.CharField(max_length= 100)
-    desription = models.TextField()
+    description  = models.TextField()
     start_date = models.DateField()
     deadline = models.DateField()
     state = models.CharField(max_length= 30 , choices =states) 
@@ -37,8 +37,8 @@ class Task(models.Model):
     stage = models.ForeignKey(Stage , on_delete=models.CASCADE , related_name= "tasks" , null=True)
     title = models.CharField(max_length = 100)
     completed = models.BooleanField(default= False , blank = True)
-    priority = models.CharField(max_length= 20 , choices= priorites)
-    start_time = models.DateField()
+    priority = models.CharField(max_length= 20 , choices= priorites , default= "LOW")
+    start_date = models.DateField()
     deadline = models.DateField()
     last_update = models.DateField(auto_now= True , blank= True)
     
@@ -52,7 +52,7 @@ class Role(models.Model):
         ("MEMBER" , "Member")
     ]
 
-    role = models.CharField(max_length= 30 , choices = roles)
+    role = models.CharField(max_length= 30 , choices = roles , default="MEMBER")
 
     def __str__(self):
         return self.role
@@ -61,6 +61,9 @@ class User_Role(models.Model):
     user = models.ForeignKey(User , on_delete= models.CASCADE , related_name= "users", null=True)
     role = models.ForeignKey(Role , on_delete= models.CASCADE , related_name="roles", null=True)
     project = models.ForeignKey(Project , on_delete= models.CASCADE , related_name="projects", null=True)
+
+    class Meta:
+        unique_together = ("user","project")
 
     def __str__(self):
         return f"{self.user} in {self.project} has {self.role} role"
