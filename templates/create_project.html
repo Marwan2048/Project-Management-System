@@ -1,0 +1,55 @@
+{% extends 'base_auth.html' %}
+{% block title %}New Project - SprintHub{% endblock %}
+
+{% block content %}
+    <div class="form-header">
+        <h1>Create a project</h1>
+        <p>Give your new project a name, timeline, and status so your team can start working.</p>
+    </div>
+
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="input-group">
+            <label for="{{ form.title.id_for_label }}">Title <span aria-hidden="true">*</span></label>
+            {{ form.title }} 
+            {{ form.title.errors }}
+        </div>
+
+        <div class="input-group">
+            <label for="{{ form.description.id_for_label }}">Description <span aria-hidden="true">*</span></label>
+            {{ form.description }}
+            {{ form.description.errors }}
+        </div>
+
+        <div class="input-group">
+            <label for="{{ form.start_date.id_for_label }}">Start date <span aria-hidden="true">*</span></label>
+            {{ form.start_date }}
+            {{ form.start_date.errors }}
+        </div>
+
+        <div class="input-group">
+            <label for="{{ form.deadline.id_for_label }}">Deadline <span aria-hidden="true">*</span></label>
+            {{ form.deadline }}
+            {{ form.deadline.errors }}
+        </div>
+
+        <div class="input-group">
+            <label for="stage_title">Stage title</label>
+            <input
+                type="text"
+                id="stage_title"
+                name="stage_title"
+                class="form-control"
+                value="{{ request.POST.stage_title }}"
+                placeholder="Enter stage title">
+        </div>
+
+        <button type="submit" class="btn-primary">Create Project</button>
+    </form>
+
+    <div class="auth-footer">
+        <p><a href="{% url 'home' %}">Back to dashboard</a></p>
+    </div>
+{% endblock %}

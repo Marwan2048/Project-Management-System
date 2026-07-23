@@ -1,9 +1,10 @@
 from django.shortcuts import render 
 from django.urls import reverse_lazy
-from django.views.generic import CreateView , ListView
-from .forms import RegisterForm , ProjectCreationForm
+from django.views.generic import CreateView , ListView , DetailView
+from .forms import RegisterForm , ProjectCreationForm , StageCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Project , User_Role , Task
+from .models import Project , User_Role , Task , Role , Stage
+from django.contrib.auth.models import User
 
 class Register(CreateView):
     form_class = RegisterForm
@@ -37,3 +38,21 @@ class ProjectListView(LoginRequiredMixin, ListView):
 
         return context
     
+class CreateProject(LoginRequiredMixin ,  CreateView):
+    model = Project
+    form_class = ProjectCreationForm
+    template_name = "create_project.html"
+    success_url = reverse_lazy("home")
+
+    def form_valid(self, form):
+        self.object = form.save()
+        self.object.state = "NO PROGRESS"
+        self.object.save()
+
+        stage_title = self.request.POST.get("stage_title", "").strip()
+        if stage_title:
+            Stage.objects.create(project=self.object, title=stage_title)
+
+        role = Role.objects.get(role = "TEAM LEADER")
+        User_Role.objects.create(user = self.request.user , role = role , project = self.object)
+        return super().form_valid(form)
