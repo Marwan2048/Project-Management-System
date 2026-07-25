@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import Register, ProjectListView, CreateProject , ProjectDetailView
+from .views import Register, ProjectListView, CreateProject , ProjectDetailView, CreateStage
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
@@ -8,5 +8,6 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("", ProjectListView.as_view() , name="home"),
     path("projects/new/", CreateProject.as_view(), name="create_project"),
-    path("project/<int:pk>/", ProjectDetailView.as_view(), name="detail_project")
+    path("project/<int:pk>/", ProjectDetailView.as_view(), name="detail_project"),
+    path("project/<int:pk>/stages/new/", CreateStage.as_view(), name="create_stage")
 ]

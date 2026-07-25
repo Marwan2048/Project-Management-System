@@ -56,3 +56,22 @@ class CreateProject(LoginRequiredMixin ,  CreateView):
         role = Role.objects.get(role = "TEAM LEADER")
         User_Role.objects.create(user = self.request.user , role = role , project = self.object)
         return super().form_valid(form)
+
+class CreateStage(LoginRequiredMixin , CreateView): 
+    model = Stage
+    fields = ["title"]
+    template_name = "create_stage.html"
+    
+    def form_valid(self, form):
+        pk = self.kwargs.get("pk")
+        project = Project.objects.get(id = pk)
+        form.instance.project = project
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("detail_project" , kwargs = self.kwargs)
+
+class ProjectDetailView(LoginRequiredMixin , DetailView):
+    model = Project
+    template_name = "project_detail.html"
+    context_object_name = "project"
