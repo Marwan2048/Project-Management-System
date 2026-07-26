@@ -1,6 +1,6 @@
 from django.shortcuts import render 
 from django.urls import reverse_lazy
-from django.views.generic import CreateView , ListView , DetailView
+from django.views.generic import CreateView , ListView , DetailView , UpdateView , DeleteView
 from .forms import RegisterForm , ProjectCreationForm , StageCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Project , User_Role , Task , Role , Stage
@@ -49,27 +49,39 @@ class CreateProject(LoginRequiredMixin ,  CreateView):
         self.object.state = "NO PROGRESS"
         self.object.save()
 
-        stage_title = self.request.POST.get("stage_title", "").strip()
-        if stage_title:
-            Stage.objects.create(project=self.object, title=stage_title)
+        stages = self.request.POST.getlist("stages")
+        for stage in stages:
+            Stage.objects.create(title = stage , project = self.object)
+            # bulk_create() is more efficent
 
         role = Role.objects.get(role = "TEAM LEADER")
         User_Role.objects.create(user = self.request.user , role = role , project = self.object)
         return super().form_valid(form)
 
-class CreateStage(LoginRequiredMixin , CreateView): 
-    model = Stage
-    fields = ["title"]
-    template_name = "create_stage.html"
-    
+class UpdateProjectView(LoginRequiredMixin , UpdateView):
+    model = Project
+    form_class = ProjectCreationForm
+    template_name = "edit_project.html"
+    success_url = reverse_lazy("home")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['existing_stages'] = Stage.objects.filter(project = self.kwargs.get("pk"))
+        return context
+
     def form_valid(self, form):
-        pk = self.kwargs.get("pk")
-        project = Project.objects.get(id = pk)
-        form.instance.project = project
+        self.object = form.save()
+        new_stages = self.request.POST.getlist("stages")
+        self.object.stages.all().delete()
+        
+        for stage in new_stages:
+            Stage.objects.create(title=stage, project=self.object)     
         return super().form_valid(form)
 
-    def get_success_url(self):
-        return reverse_lazy("detail_project" , kwargs = self.kwargs)
+class DeleteProjectView(LoginRequiredMixin , DeleteView):
+    model = Project
+    template_name = "delete_project_confirm.html"
+    success_url = reverse_lazy("home")
 
 class ProjectDetailView(LoginRequiredMixin , DetailView):
     model = Project

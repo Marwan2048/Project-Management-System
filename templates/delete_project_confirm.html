@@ -1,0 +1,144 @@
+{% extends 'base_auth.html' %}
+{% block title %}Delete Project - SprintHub{% endblock %}
+
+{% block content %}
+    <div class="modal-overlay">
+        <div class="modal-card delete-card">
+            <div class="modal-header">
+                <h1>Delete Project</h1>
+                <p>This action cannot be undone.</p>
+            </div>
+
+            <div class="delete-content">
+                <p class="warning-text">Are you sure you want to delete <strong>{{ project.title }}</strong>?</p>
+                <p class="warning-subtext">All stages, tasks, and related data for this project will be permanently deleted.</p>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'detail_project' project.id %}" class="btn-secondary">Cancel</a>
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-danger">Delete Project</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-card {
+            background: rgba(7, 12, 31, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 40px 120px rgba(5, 9, 24, 0.4);
+        }
+
+        .modal-card.delete-card {
+            border-color: rgba(253, 164, 175, 0.2);
+        }
+
+        .modal-header {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .modal-header h1 {
+            margin: 0 0 8px;
+            font-size: 1.8rem;
+            letter-spacing: -0.04em;
+            font-weight: 700;
+            color: #fda4af;
+        }
+
+        .modal-header p {
+            margin: 0;
+            color: #b3c0e5;
+            font-size: 0.95rem;
+        }
+
+        .delete-content {
+            margin-bottom: 32px;
+            padding: 16px;
+            background: rgba(253, 164, 175, 0.05);
+            border-left: 3px solid rgba(253, 164, 175, 0.3);
+            border-radius: 8px;
+        }
+
+        .warning-text {
+            margin: 0 0 8px;
+            color: #fca5b0;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .warning-subtext {
+            margin: 0;
+            color: #a8b4c8;
+            font-size: 0.9rem;
+        }
+
+        .delete-content strong {
+            color: #fda4af;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-secondary,
+        .btn-danger {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 200ms ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #f4f7ff;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fd8a92 0%, #fa5e68 100%);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(253, 164, 175, 0.3);
+        }
+
+        .btn-danger:active {
+            transform: translateY(0);
+        }
+    </style>
+{% endblock %}

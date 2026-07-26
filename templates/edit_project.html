@@ -1,13 +1,13 @@
 {% extends 'base_auth.html' %}
-{% block title %}New Project - SprintHub{% endblock %}
+{% block title %}Edit Project - SprintHub{% endblock %}
 
 {% block content %}
     <div class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
-                <h1>Create New Project</h1>
-                <p>Define your project scope, timeline, and workflow stages.</p>
-                <a href="{% url 'home' %}" class="modal-close">&times;</a>
+                <h1>Edit Project</h1>
+                <p>Update your project details and timeline.</p>
+                <a href="{% url 'detail_project' project.id %}" class="modal-close">&times;</a>
             </div>
 
             <form method="post" class="project-form">
@@ -54,6 +54,18 @@
                     </div>
                     
                     <div class="stages-list" id="stagesList">
+                        {% for stage in existing_stages %}
+                            <div class="stage-item" draggable="true">
+                                <div class="stage-drag-handle">⋮⋮</div>
+                                <div class="stage-number">{{ forloop.counter }}</div>
+                                <div class="stage-title-display">{{ stage.title }}</div>
+                                <div class="stage-actions">
+                                    <button type="button" class="btn-edit-stage" title="Edit stage">✎</button>
+                                    <button type="button" class="btn-delete-stage" title="Delete stage">✕</button>
+                                </div>
+                                <input type="hidden" class="stage-input" name="stages" value="{{ stage.title }}">
+                            </div>
+                        {% endfor %}
                     </div>
 
                     <div class="new-stage-input" id="newStageInput" style="display: none;">
@@ -66,7 +78,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary">Create Project</button>
+                    <button type="submit" class="btn-primary">Update Project</button>
                 </div>
             </form>
         </div>
@@ -500,6 +512,33 @@
 
                 stagesList.appendChild(stageItem);
             }
+
+            function setupStageEventListeners(stageItem) {
+                const editBtn = stageItem.querySelector('.btn-edit-stage');
+                const deleteBtn = stageItem.querySelector('.btn-delete-stage');
+                
+                editBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    editStage(stageItem);
+                });
+
+                deleteBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    deleteStage(stageItem);
+                });
+
+                stageItem.addEventListener('dragstart', handleDragStart);
+                stageItem.addEventListener('dragend', handleDragEnd);
+                stageItem.addEventListener('dragover', handleDragOver);
+                stageItem.addEventListener('drop', handleDrop);
+                stageItem.addEventListener('dragleave', handleDragLeave);
+            }
+
+            // Setup existing stages
+            const existingStages = stagesList.querySelectorAll('.stage-item');
+            existingStages.forEach(stageItem => {
+                setupStageEventListeners(stageItem);
+            });
 
             function editStage(stageItem) {
                 const titleDisplay = stageItem.querySelector('.stage-title-display');

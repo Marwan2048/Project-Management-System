@@ -46,16 +46,31 @@
             </div>
             <div class="project-grid">
                 {% for project in projects %}
-                    <a href="{% url 'detail_project' project.id %}" class="project-card" aria-label="Open {{ project.title }}">
-                        <div class="project-card-header">
-                            <span class="project-badge">{{ project.get_state_display }}</span>
+                    <div class="project-card-wrapper">
+                        <a href="{% url 'detail_project' project.id %}" class="project-card" aria-label="Open {{ project.title }}">
+                            <div class="project-card-header">
+                                <span class="project-badge">{{ project.get_state_display }}</span>
+                            </div>
+                            <h3>{{ project.title }}</h3>
+                            <p class="project-meta">Due {{ project.deadline|date:"M d, Y" }}</p>
+                            <div class="project-card-footer">
+                                <span class="project-card-meta">Started {{ project.start_date|date:"M d, Y" }}</span>
+                            </div>
+                        </a>
+                        <div class="project-card-actions">
+                            <a href="{% url 'update_project' project.id %}" class="btn-card-action btn-edit" title="Edit project">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
+                                    <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
+                                </svg>
+                            </a>
+                            <a href="{% url 'delete_project' project.id %}" class="btn-card-action btn-delete" title="Delete project">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
+                                </svg>
+                            </a>
                         </div>
-                        <h3>{{ project.title }}</h3>
-                        <p class="project-meta">Due {{ project.deadline|date:"M d, Y" }}</p>
-                        <div class="project-card-footer">
-                            <span class="project-card-meta">Started {{ project.start_date|date:"M d, Y" }}</span>
-                        </div>
-                    </a>
+                    </div>
                 {% empty %}
                     <div class="empty-state">
                         <p>You don't have any active projects yet.</p>
@@ -64,5 +79,61 @@
             </div>
         </section>
     </main>
-</body>
-</html>
+
+    <style>
+        .project-card-wrapper {
+            position: relative;
+        }
+
+        .project-card-wrapper:hover .project-card-actions {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .project-card-actions {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 200ms ease;
+        }
+
+        .btn-card-action {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            color: #94a3b8;
+            transition: all 200ms ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-card-action:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-card-action.btn-edit:hover {
+            background: rgba(94, 90, 255, 0.2);
+            color: #a78bfa;
+        }
+
+        .btn-card-action.btn-delete:hover {
+            background: rgba(253, 164, 175, 0.2);
+            color: #fca5b0;
+        }
+
+        .btn-card-action svg {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+
