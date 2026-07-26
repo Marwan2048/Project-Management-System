@@ -57,4 +57,25 @@ class StageCreationForm(forms.ModelForm):
 class TaskCreationForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ["owner" , "stage" , "title" , "priority" , "start_date" , "deadline"]
+        fields = ["title" , "priority" , "start_date" , "deadline"]
+        widgets = {
+            "priority": forms.Select(
+                attrs={
+                    "class": "task-select",
+                }
+            ),
+            "start_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "min": datetime.date.today().isoformat(),
+                    "class": "form-control"
+                }
+            ),
+            "deadline": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "min": datetime.date.today().isoformat(),
+                    "class": "form-control"
+                }
+            )
+        }

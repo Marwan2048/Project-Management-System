@@ -1,7 +1,7 @@
 from django.shortcuts import render 
 from django.urls import reverse_lazy
 from django.views.generic import CreateView , ListView , DetailView , UpdateView , DeleteView
-from .forms import RegisterForm , ProjectCreationForm , StageCreationForm
+from .forms import RegisterForm , ProjectCreationForm , TaskCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Project , User_Role , Task , Role , Stage
 from django.contrib.auth.models import User
@@ -83,6 +83,26 @@ class DeleteProjectView(LoginRequiredMixin , DeleteView):
     template_name = "delete_project_confirm.html"
     success_url = reverse_lazy("home")
 
+class CreateTask(LoginRequiredMixin , CreateView):
+    model = Task
+    form_class = TaskCreationForm
+    template_name = "create_task.html"
+
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        context["stages"] = Stage.objects.filter(project = self.kwargs.get("pk"))
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        stage = self.request.POST.get("stage_choosen")
+        self.object.stage = Stage.objects.get(pk=stage)
+        self.object.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("detail_project" , kwargs = self.kwargs) 
+    
 class ProjectDetailView(LoginRequiredMixin , DetailView):
     model = Project
     template_name = "project_detail.html"

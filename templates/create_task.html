@@ -1,0 +1,238 @@
+{% extends 'base_auth.html' %}
+{% block title %}Add Task - SprintHub{% endblock %}
+
+{% block content %}
+    <div class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h1>Add Task</h1>
+                <p>Create a task for this project and assign it to a stage.</p>
+                <a href="{% url 'detail_project' view.kwargs.pk %}" class="modal-close">&times;</a>
+            </div>
+
+            <form method="post" class="project-form">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                <div class="input-group">
+                    <label for="stage_choosen">Stage <span aria-hidden="true">*</span></label>
+                    <select id="stage_choosen" name="stage_choosen" class="task-select" required>
+                        <option value="" selected disabled>Choose a stage</option>
+                        {% for stage in stages %}
+                            <option value="{{ stage.id }}">{{ stage.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="{{ form.title.id_for_label }}">Task Title <span aria-hidden="true">*</span></label>
+                    {{ form.title }}
+                    {{ form.title.errors }}
+                </div>
+
+                <div class="input-group">
+                    <label for="{{ form.priority.id_for_label }}">Priority <span aria-hidden="true">*</span></label>
+                    {{ form.priority }}
+                    {{ form.priority.errors }}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="input-group">
+                            <label for="{{ form.start_date.id_for_label }}">Start Date <span aria-hidden="true">*</span></label>
+                            {{ form.start_date }}
+                            {{ form.start_date.errors }}
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="input-group">
+                            <label for="{{ form.deadline.id_for_label }}">Deadline <span aria-hidden="true">*</span></label>
+                            {{ form.deadline }}
+                            {{ form.deadline.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Add Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-card {
+            background: rgba(7, 12, 31, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 640px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 40px 120px rgba(5, 9, 24, 0.4);
+        }
+
+        .modal-header {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .modal-header h1 {
+            margin: 0 0 8px;
+            font-size: 1.8rem;
+            letter-spacing: -0.04em;
+            font-weight: 700;
+        }
+
+        .modal-header p {
+            margin: 0;
+            color: #b3c0e5;
+            font-size: 0.95rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 2rem;
+            color: #94a3b8;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 200ms ease;
+        }
+
+        .modal-close:hover {
+            color: #f4f7ff;
+        }
+
+        .project-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .input-group {
+            display: grid;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 0.9rem;
+            color: #d4d9f7;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: #f7f9ff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 180ms ease, background 180ms ease;
+        }
+
+        .input-group select,
+        .task-select {
+            color: #f7f9ff;
+            background: rgba(10, 18, 38, 0.95);
+        }
+
+        .input-group select option,
+        .task-select option {
+            color: #f7f9ff;
+            background: #0b1224;
+        }
+
+        .task-select:required:invalid {
+            color: #94a3b8;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus,
+        .input-group select:focus {
+            border-color: rgba(94, 90, 255, 0.75);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .input-group select:disabled,
+        .task-select:disabled {
+            color: #94a3b8;
+        }
+
+        .input-group .errorlist {
+            margin: 0;
+            padding: 0;
+            color: #fda4af;
+            font-size: 0.9rem;
+            list-style: none;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            background: rgba(56, 189, 248, 0.12);
+            color: #7dd3fc;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .btn-primary:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.6);
+            color: #bae6fd;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 640px) {
+            .modal-card {
+                padding: 28px 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
