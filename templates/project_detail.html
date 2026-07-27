@@ -41,15 +41,61 @@
 
     <main class="dashboard-content">
         <div class="content-wrap">
-            <div class="stages">
+            <div class="stage-board">
                 {% for stage in project.stages.all %}
-                    <section class="stage">
-                        <div class="stage-header">
-                            <h3>{{ stage.title }}</h3>
+                    <section class="stage-column">
+                        <div class="stage-column-header">
+                            <div class="stage-title-wrap">
+                                <span class="stage-number">Stage {{ forloop.counter }}</span>
+                                <div class="stage-title-row">
+                                    <h3 class="stage-name">{{ stage.title }}</h3>
+                                    <div class="stage-actions">
+                                        <a href="{% url 'update_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--edit" title="Edit stage" aria-label="Edit {{ stage.title }}">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
+                                                <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
+                                            </svg>
+                                        </a>
+                                        <a href="{% url 'delete_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--delete" title="Delete stage" aria-label="Delete {{ stage.title }}">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="stage-count">{{ stage.tasks.count }} Tasks</span>
+                        </div>
+
+                        <div class="task-stack">
+                            {% for task in stage.tasks.all %}
+                                <article class="task-card {% if task.completed %}task-card--done{% endif %}">
+                                    <div class="task-status-row">
+                                        <span class="task-check {% if task.completed %}task-check--done{% endif %}">
+                                            {% if task.completed %}✓{% else %}&nbsp;{% endif %}
+                                        </span>
+                                        <span class="task-priority task-priority--{{ task.priority|lower }}">{{ task.get_priority_display }}</span>
+                                    </div>
+
+                                    <h4 class="task-title {% if task.completed %}task-title--done{% endif %}">{{ task.title }}</h4>
+
+                                    <div class="task-footer">
+                                        <div class="task-owner">
+                                            <span class="task-avatar">{{ task.owner.username|default:"U"|slice:":1" }}</span>
+                                            <span class="task-owner-name">{% if task.owner %}{{ task.owner.username }}{% else %}Unassigned{% endif %}</span>
+                                        </div>
+                                        <span class="task-deadline">{{ task.deadline|date:"M d" }}</span>
+                                    </div>
+                                </article>
+                            {% empty %}
+                                <div class="empty-task-slot">
+                                    No tasks yet
+                                </div>
+                            {% endfor %}
                         </div>
                     </section>
                 {% empty %}
-                    <p style="color:#777">No stages added yet.</p>
+                    <p class="empty-stages">No stages added yet.</p>
                 {% endfor %}
             </div>
         </div>
@@ -155,6 +201,275 @@
             height: 16px;
         }
 
+        .content-wrap {
+            width: 100%;
+        }
+
+        .stage-board {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(280px, 320px);
+            gap: 18px;
+            align-items: start;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+
+        .stage-column {
+            min-height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .stage-column-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .stage-title-wrap {
+            display: grid;
+            gap: 8px;
+        }
+
+        .stage-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stage-number {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.14);
+            color: #7dd3fc;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .stage-name {
+            margin: 0;
+            font-size: 1.08rem;
+            letter-spacing: -0.02em;
+            color: #f4f7ff;
+        }
+
+        .stage-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stage-icon-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+        }
+
+        .stage-icon-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .stage-icon-btn--edit {
+            background: rgba(59, 130, 246, 0.18);
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, 0.35);
+        }
+
+        .stage-icon-btn--edit:hover {
+            background: rgba(59, 130, 246, 0.28);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .stage-icon-btn--delete {
+            background: rgba(239, 68, 68, 0.18);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+
+        .stage-icon-btn--delete:hover {
+            background: rgba(239, 68, 68, 0.28);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .stage-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #cbd5e1;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .task-stack {
+            display: grid;
+            gap: 14px;
+        }
+
+        .task-card {
+            min-height: 148px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.94);
+            color: #0f172a;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .task-card--done {
+            opacity: 0.88;
+        }
+
+        .task-status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .task-check {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            border: 1px solid rgba(15, 23, 42, 0.35);
+            color: #2563eb;
+            font-size: 0.8rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .task-check--done {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .task-priority {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #fef3c7;
+            color: #b45309;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+
+        .task-priority--low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .task-priority--medium {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .task-priority--high {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .task-title {
+            margin: 12px 0 0;
+            font-size: 1.05rem;
+            line-height: 1.3;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .task-title--done {
+            text-decoration: line-through;
+            color: #334155;
+        }
+
+        .task-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .task-owner {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .task-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #0f766e, #1d4ed8);
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .task-owner-name,
+        .task-deadline {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .task-owner-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .task-deadline {
+            color: #dc2626;
+            white-space: nowrap;
+        }
+
+        .empty-task-slot {
+            min-height: 148px;
+            border: 1px dashed rgba(148, 163, 184, 0.35);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.55);
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .empty-stages {
+            color: #94a3b8;
+            margin: 0;
+        }
+
         @media (max-width: 640px) {
             .header-actions {
                 align-items: flex-start;
@@ -162,6 +477,10 @@
 
             .action-row {
                 justify-content: flex-start;
+            }
+
+            .stage-board {
+                grid-auto-columns: minmax(260px, 1fr);
             }
         }
     </style>

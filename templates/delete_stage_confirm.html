@@ -1,0 +1,121 @@
+{% extends 'base_auth.html' %}
+{% block title %}Delete Stage - SprintHub{% endblock %}
+
+{% block content %}
+    <div class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h1>Delete Stage</h1>
+                <p>This will remove the stage and any tasks inside it.</p>
+                <a href="{% url 'detail_project' stage.project.id %}" class="modal-close">&times;</a>
+            </div>
+
+            <div class="delete-summary">
+                <span class="stage-label">{{ stage.title }}</span>
+            </div>
+
+            <form method="post" class="delete-form">
+                {% csrf_token %}
+                <div class="form-actions">
+                    <a href="{% url 'detail_project' stage.project.id %}" class="btn-secondary">Cancel</a>
+                    <button type="submit" class="btn-danger">Delete Stage</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-card {
+            background: rgba(7, 12, 31, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 560px;
+            width: 100%;
+            box-shadow: 0 40px 120px rgba(5, 9, 24, 0.4);
+        }
+
+        .modal-header {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h1 {
+            margin: 0 0 8px;
+            font-size: 1.8rem;
+            letter-spacing: -0.04em;
+            font-weight: 700;
+        }
+
+        .modal-header p {
+            margin: 0;
+            color: #b3c0e5;
+            font-size: 0.95rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 2rem;
+            color: #94a3b8;
+            text-decoration: none;
+        }
+
+        .delete-summary {
+            padding: 16px;
+            border-radius: 14px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            margin-bottom: 20px;
+        }
+
+        .stage-label {
+            color: #f4f7ff;
+            font-weight: 700;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-secondary,
+        .btn-danger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: #f4f7ff;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+    </style>
+{% endblock %}

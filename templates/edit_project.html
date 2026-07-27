@@ -55,21 +55,15 @@
                     
                     <div class="stages-list" id="stagesList">
                         {% for stage in existing_stages %}
-                            <div class="stage-item" draggable="true">
-                                <div class="stage-drag-handle">⋮⋮</div>
+                            <div class="stage-item">
                                 <div class="stage-number">{{ forloop.counter }}</div>
                                 <div class="stage-title-display">{{ stage.title }}</div>
-                                <div class="stage-actions">
-                                    <button type="button" class="btn-edit-stage" title="Edit stage">✎</button>
-                                    <button type="button" class="btn-delete-stage" title="Delete stage">✕</button>
-                                </div>
-                                <input type="hidden" class="stage-input" name="stages" value="{{ stage.title }}">
                             </div>
                         {% endfor %}
                     </div>
 
                     <div class="new-stage-input" id="newStageInput" style="display: none;">
-                        <input type="text" placeholder="Enter stage name..." class="stage-name-input" id="newStageName" value="">
+                        <input type="text" placeholder="Enter stage name..." class="stage-name-input" id="newStageName" value="stage" name="stage">
                         <div class="stage-input-actions">
                             <button type="button" class="btn-confirm-stage" id="confirmStageBtn">✓</button>
                             <button type="button" class="btn-cancel-stage" id="cancelStageBtn">✕</button>
@@ -251,30 +245,16 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.03);
-            transition: background 200ms ease, opacity 200ms ease;
-            cursor: grab;
-            user-select: none;
+            transition: background 200ms ease, border-color 200ms ease;
         }
 
         .stage-item:hover {
             background: rgba(255, 255, 255, 0.06);
         }
 
-        .stage-item.dragging {
-            opacity: 0.5;
-        }
-
-        .stage-item.drag-over {
-            border-color: rgba(94, 90, 255, 0.6);
-            background: rgba(94, 90, 255, 0.1);
-        }
-
-        .stage-drag-handle {
-            cursor: grab;
-            color: #6b7280;
-            font-size: 0.8rem;
-            flex-shrink: 0;
-            padding: 4px 2px;
+        .stage-item--pending {
+            border-color: rgba(56, 189, 248, 0.35);
+            background: rgba(56, 189, 248, 0.08);
         }
 
         .stage-number {
@@ -295,48 +275,6 @@
             flex: 1;
             color: #f4f7ff;
             font-size: 0.95rem;
-        }
-
-        .stage-input {
-            display: none;
-        }
-
-        .stage-actions {
-            display: flex;
-            gap: 6px;
-        }
-
-        .btn-edit-stage,
-        .btn-delete-stage {
-            width: 28px;
-            height: 28px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: background 200ms ease, color 200ms ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .btn-edit-stage {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-        }
-
-        .btn-edit-stage:hover {
-            background: rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-delete-stage {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-
-        .btn-delete-stage:hover {
-            background: rgba(239, 68, 68, 0.3);
         }
 
         .new-stage-input {
@@ -445,10 +383,18 @@
             const newStageName = document.getElementById('newStageName');
             const confirmStageBtn = document.getElementById('confirmStageBtn');
             const cancelStageBtn = document.getElementById('cancelStageBtn');
-            let draggedElement = null;
+            const pendingStage = stagesList.querySelector('input[name="new_stage_title"]');
+
+            if (pendingStage) {
+                addStageBtn.disabled = true;
+                addStageBtn.textContent = 'Stage Added';
+            }
 
             addStageBtn.addEventListener('click', function(e) {
                 e.preventDefault();
+                if (stagesList.querySelector('input[name="new_stage_title"]')) {
+                    return;
+                }
                 newStageInput.style.display = 'flex';
                 newStageName.focus();
             });
@@ -460,6 +406,8 @@
                     addStageToList(stageName);
                     newStageName.value = '';
                     newStageInput.style.display = 'none';
+                    addStageBtn.disabled = true;
+                    addStageBtn.textContent = 'Stage Added';
                 }
             });
 
@@ -477,159 +425,16 @@
             });
 
             function addStageToList(stageName) {
-                const stageNumber = stagesList.children.length + 1;
+                const stageNumber = stagesList.querySelectorAll('.stage-item').length + 1;
                 const stageItem = document.createElement('div');
-                stageItem.className = 'stage-item';
-                stageItem.draggable = true;
+                stageItem.className = 'stage-item stage-item--pending';
                 stageItem.innerHTML = `
-                    <div class="stage-drag-handle">⋮⋮</div>
                     <div class="stage-number">${stageNumber}</div>
                     <div class="stage-title-display">${stageName}</div>
-                    <div class="stage-actions">
-                        <button type="button" class="btn-edit-stage" title="Edit stage">✎</button>
-                        <button type="button" class="btn-delete-stage" title="Delete stage">✕</button>
-                    </div>
-                    <input type="hidden" class="stage-input" name="stages" value="${stageName}">
+                    <input type="hidden" name="new_stage_title" value="${stageName}">
                 `;
-                
-                const editBtn = stageItem.querySelector('.btn-edit-stage');
-                editBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    editStage(stageItem);
-                });
-
-                const deleteBtn = stageItem.querySelector('.btn-delete-stage');
-                deleteBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    deleteStage(stageItem);
-                });
-
-                stageItem.addEventListener('dragstart', handleDragStart);
-                stageItem.addEventListener('dragend', handleDragEnd);
-                stageItem.addEventListener('dragover', handleDragOver);
-                stageItem.addEventListener('drop', handleDrop);
-                stageItem.addEventListener('dragleave', handleDragLeave);
 
                 stagesList.appendChild(stageItem);
-            }
-
-            function setupStageEventListeners(stageItem) {
-                const editBtn = stageItem.querySelector('.btn-edit-stage');
-                const deleteBtn = stageItem.querySelector('.btn-delete-stage');
-                
-                editBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    editStage(stageItem);
-                });
-
-                deleteBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    deleteStage(stageItem);
-                });
-
-                stageItem.addEventListener('dragstart', handleDragStart);
-                stageItem.addEventListener('dragend', handleDragEnd);
-                stageItem.addEventListener('dragover', handleDragOver);
-                stageItem.addEventListener('drop', handleDrop);
-                stageItem.addEventListener('dragleave', handleDragLeave);
-            }
-
-            // Setup existing stages
-            const existingStages = stagesList.querySelectorAll('.stage-item');
-            existingStages.forEach(stageItem => {
-                setupStageEventListeners(stageItem);
-            });
-
-            function editStage(stageItem) {
-                const titleDisplay = stageItem.querySelector('.stage-title-display');
-                const currentName = titleDisplay.textContent;
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.value = currentName;
-                input.style.cssText = 'flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(94, 90, 255, 0.6); background: rgba(255, 255, 255, 0.04); color: #f7f9ff; font-size: 0.95rem; font-family: inherit;';
-                
-                titleDisplay.replaceWith(input);
-                input.focus();
-                input.select();
-
-                function saveEdit() {
-                    const newName = input.value.trim();
-                    if (newName) {
-                        const newDisplay = document.createElement('div');
-                        newDisplay.className = 'stage-title-display';
-                        newDisplay.textContent = newName;
-                        input.replaceWith(newDisplay);
-                        stageItem.querySelector('.stage-input').value = newName;
-                    } else {
-                        const newDisplay = document.createElement('div');
-                        newDisplay.className = 'stage-title-display';
-                        newDisplay.textContent = currentName;
-                        input.replaceWith(newDisplay);
-                    }
-                }
-
-                input.addEventListener('blur', saveEdit);
-                input.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        saveEdit();
-                    }
-                });
-            }
-
-            function deleteStage(stageItem) {
-                stageItem.remove();
-                updateStageNumbers();
-            }
-
-            function updateStageNumbers() {
-                const stages = stagesList.querySelectorAll('.stage-item');
-                stages.forEach((stage, index) => {
-                    const numberEl = stage.querySelector('.stage-number');
-                    numberEl.textContent = index + 1;
-                });
-            }
-
-            function handleDragStart(e) {
-                draggedElement = this;
-                this.classList.add('dragging');
-                e.dataTransfer.effectAllowed = 'move';
-            }
-
-            function handleDragEnd(e) {
-                draggedElement.classList.remove('dragging');
-                const stages = stagesList.querySelectorAll('.stage-item');
-                stages.forEach(stage => stage.classList.remove('drag-over'));
-                draggedElement = null;
-            }
-
-            function handleDragOver(e) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (this !== draggedElement) {
-                    this.classList.add('drag-over');
-                }
-            }
-
-            function handleDragLeave(e) {
-                this.classList.remove('drag-over');
-            }
-
-            function handleDrop(e) {
-                e.preventDefault();
-                if (this !== draggedElement) {
-                    const allStages = [...stagesList.querySelectorAll('.stage-item')];
-                    const draggedIndex = allStages.indexOf(draggedElement);
-                    const targetIndex = allStages.indexOf(this);
-                    
-                    if (draggedIndex < targetIndex) {
-                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
-                    } else {
-                        this.parentNode.insertBefore(draggedElement, this);
-                    }
-                    
-                    updateStageNumbers();
-                }
-                this.classList.remove('drag-over');
             }
         });
     </script>

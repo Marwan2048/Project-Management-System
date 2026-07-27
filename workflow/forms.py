@@ -52,7 +52,7 @@ class ProjectCreationForm(forms.ModelForm):
 class StageCreationForm(forms.ModelForm):
     class Meta:
         model = Stage
-        fields = ["project","title"]
+        fields = ["title"]
 
 class TaskCreationForm(forms.ModelForm):
     class Meta:

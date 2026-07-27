@@ -1,7 +1,7 @@
 from django.shortcuts import render 
 from django.urls import reverse_lazy
 from django.views.generic import CreateView , ListView , DetailView , UpdateView , DeleteView
-from .forms import RegisterForm , ProjectCreationForm , TaskCreationForm
+from .forms import RegisterForm , ProjectCreationForm , TaskCreationForm , StageCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Project , User_Role , Task , Role , Stage
 from django.contrib.auth.models import User
@@ -62,7 +62,6 @@ class UpdateProjectView(LoginRequiredMixin , UpdateView):
     model = Project
     form_class = ProjectCreationForm
     template_name = "edit_project.html"
-    success_url = reverse_lazy("home")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -70,18 +69,34 @@ class UpdateProjectView(LoginRequiredMixin , UpdateView):
         return context
 
     def form_valid(self, form):
-        self.object = form.save()
-        new_stages = self.request.POST.getlist("stages")
-        self.object.stages.all().delete()
-        
-        for stage in new_stages:
-            Stage.objects.create(title=stage, project=self.object)     
+        new_stage = self.request.POST.get("new_stage_title")
+        Stage.objects.create(title = new_stage , project = self.object)
         return super().form_valid(form)
 
+    def get_success_url(self):
+        return reverse_lazy("detail_project" , kwargs = {"pk": self.object.id})
+    
 class DeleteProjectView(LoginRequiredMixin , DeleteView):
     model = Project
     template_name = "delete_project_confirm.html"
     success_url = reverse_lazy("home")
+
+class UpdateStageView(LoginRequiredMixin , UpdateView):
+    model = Stage
+    form_class = StageCreationForm
+    template_name = "edit_stage.html"
+    context_object_name = "stage"
+
+    def get_success_url(self):
+        return reverse_lazy("detail_project" , kwargs = {"pk": self.object.id})
+
+class DeleteStageView(LoginRequiredMixin , DeleteView):
+    model = Stage
+    template_name = "delete_stage_confirm.html"
+    context_object_name = "stage"
+
+    def get_success_url(self):
+            return reverse_lazy("detail_project" , kwargs = {"pk": self.object.id})
 
 class CreateTask(LoginRequiredMixin , CreateView):
     model = Task

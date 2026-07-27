@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import Register, ProjectListView, CreateProject , ProjectDetailView , UpdateProjectView , DeleteProjectView , CreateTask
+from .views import Register, ProjectListView, CreateProject , ProjectDetailView , UpdateProjectView , DeleteProjectView , CreateTask , UpdateStageView , DeleteStageView
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
@@ -11,5 +11,7 @@ urlpatterns = [
     path("project/<int:pk>/", ProjectDetailView.as_view(), name="detail_project"),
     path("project/<int:pk>/edit" , UpdateProjectView.as_view() , name="update_project"),
     path("project/<int:pk>/delete" , DeleteProjectView.as_view(), name="delete_project"),
+    path("stage/<int:pk>/edit/" , UpdateStageView.as_view(), name="update_stage"),
+    path("stage/<int:pk>/delete/" , DeleteStageView.as_view(), name="delete_stage"),
     path("project/<int:pk>/create_task/" , CreateTask.as_view() , name="create_task"),
 ]
