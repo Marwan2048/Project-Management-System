@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitations - SprintHub</title>
+    <link rel="stylesheet" href="{% static 'workflow/css/auth.css' %}">
+</head>
+<body class="dashboard-shell">
+    <main class="dashboard-content">
+        <section class="invitations-card">
+            <div class="invitations-header">
+                <h1>Pending Invitations</h1>
+                <a href="{% url 'home' %}" class="btn-secondary">Back Home</a>
+            </div>
+
+            <div class="invitations-list">
+                {% for invitation in invitations %}
+                    <article class="invitation-item">
+                        <div class="invitation-main">
+                            <h3>{{ invitation.project.title }}</h3>
+                            <p>
+                                From <strong>{{ invitation.sender.username }}</strong>
+                                on {{ invitation.invitation_time|date:"M d, Y" }}
+                            </p>
+                        </div>
+                        <div class="invitation-actions">
+                            <span class="invitation-state">{{ invitation.get_state_display }}</span>
+                            <form method="post" action="{% url 'invitation_action' invitation.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="decision" value="accept">
+                                <button type="submit" class="btn-accept">Accept</button>
+                            </form>
+                            <form method="post" action="{% url 'invitation_action' invitation.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="decision" value="decline">
+                                <button type="submit" class="btn-decline">Decline</button>
+                            </form>
+                        </div>
+                    </article>
+                {% empty %}
+                    <p class="empty-note">You have no pending invitations.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <style>
+        .invitations-card {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .invitations-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .invitations-header h1 {
+            margin: 0;
+            font-size: 1.7rem;
+            color: #f8fafc;
+        }
+
+        .invitations-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .invitation-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            padding: 14px;
+        }
+
+        .invitation-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .invitation-main h3 {
+            margin: 0 0 4px;
+            color: #f8fafc;
+            font-size: 1rem;
+        }
+
+        .invitation-main p {
+            margin: 0;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .invitation-state {
+            border-radius: 999px;
+            padding: 6px 10px;
+            background: rgba(250, 204, 21, 0.18);
+            border: 1px solid rgba(250, 204, 21, 0.35);
+            color: #fde68a;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .btn-accept,
+        .btn-decline {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .btn-accept {
+            background: rgba(34, 197, 94, 0.14);
+            border-color: rgba(34, 197, 94, 0.35);
+            color: #bbf7d0;
+        }
+
+        .btn-decline {
+            background: rgba(239, 68, 68, 0.14);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #fecaca;
+        }
+
+        .empty-note {
+            margin: 0;
+            color: #94a3b8;
+            padding: 8px 0;
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: #f4f7ff;
+            font-weight: 600;
+            font-size: 0.88rem;
+            text-decoration: none;
+            transition: all 200ms ease;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+        }
+    </style>
+</body>
+</html>

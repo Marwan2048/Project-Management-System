@@ -67,3 +67,22 @@ class User_Role(models.Model):
 
     def __str__(self):
         return f"{self.user} in {self.project} has {self.role} role"
+
+class Invitation(models.Model):
+
+    states = [
+        ("PENDING" , "Pending"),
+        ("ACCEPTED" , "Accepted"),
+        ("DECLINED" , "Declined"),
+    ]
+    
+    project = models.ForeignKey(Project , on_delete=models.CASCADE ,related_name="project_invitations")
+    sender = models.ForeignKey(User , on_delete=models.CASCADE ,  related_name="sent_invitations")
+    receiver = models.ForeignKey(User , on_delete=models.CASCADE ,  related_name="received_invitations")
+    state = models.CharField(max_length=20 , choices = states , default= "PENDING")
+    invitation_time = models.DateField(auto_now_add=True , blank = True)
+
+    class Meta:
+        unique_together = ("project" , "sender" , "receiver")
+    def __str__(self):
+        return f"{self.sender} sent invitation to {self.receiver}" 

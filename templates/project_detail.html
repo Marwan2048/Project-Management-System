@@ -9,10 +9,17 @@
 </head>
 <body class="dashboard-shell">
     <header class="page-header">
-        <div>
+        <div class="header-left">
             <h1>{{ project.title }}</h1>
-            <p class="project-meta">Stages for this project</p>
+            <p class="project-meta">Web Stages for this project</p>
         </div>
+
+        <div class="header-progress" aria-label="Project overall progress">
+            <span class="progress-label">Overall Progress</span>
+            <progress class="progress-track" value="{{ overall_progress|floatformat:0 }}" max="100"></progress>
+            <span class="progress-value">{{ overall_progress|floatformat:0 }}%</span>
+        </div>
+
         <div class="header-actions">
             <div class="action-row">
             <a href="{% url 'update_project' project.id %}" class="btn-secondary" title="Edit project">
@@ -41,71 +48,151 @@
 
     <main class="dashboard-content">
         <div class="content-wrap">
-            <div class="stage-board">
-                {% for stage in project.stages.all %}
-                    <section class="stage-column">
-                        <div class="stage-column-header">
-                            <div class="stage-title-wrap">
-                                <span class="stage-number">Stage {{ forloop.counter }}</span>
-                                <div class="stage-title-row">
-                                    <h3 class="stage-name">{{ stage.title }}</h3>
-                                    <div class="stage-actions">
-                                        <a href="{% url 'update_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--edit" title="Edit stage" aria-label="Edit {{ stage.title }}">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
-                                                <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
-                                            </svg>
-                                        </a>
-                                        <a href="{% url 'delete_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--delete" title="Delete stage" aria-label="Delete {{ stage.title }}">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
-                                            </svg>
-                                        </a>
+            <form method="get" class="filter-panel">
+                <span class="filter-title">Filter by:</span>
+
+                <div class="filter-group filter-group--inline">
+                    <select name="user" id="user">
+                        <option value="">All Assignees</option>
+                        {% for member in project_members %}
+                            <option value="{{ member.id }}" {% if selected_user == member.id|stringformat:"s" %}selected{% endif %}>{{ member.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group filter-group--inline">
+                    <select name="priority" id="priority">
+                        <option value="">All Priorities</option>
+                        <option value="LOW" {% if selected_priority == 'LOW' %}selected{% endif %}>Low</option>
+                        <option value="MEDIUM" {% if selected_priority == 'MEDIUM' %}selected{% endif %}>Medium</option>
+                        <option value="HIGH" {% if selected_priority == 'HIGH' %}selected{% endif %}>High</option>
+                    </select>
+                </div>
+
+                <div class="filter-group filter-group--inline">
+                    <select name="completed" id="completed">
+                        <option value="">All Status</option>
+                        <option value="true" {% if selected_completed == 'true' %}selected{% endif %}>Completed</option>
+                        <option value="false" {% if selected_completed == 'false' %}selected{% endif %}>Pending</option>
+                    </select>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="btn-primary">Apply</button>
+                    <a href="{% url 'detail_project' project.id %}" class="btn-secondary">Clear</a>
+                </div>
+            </form>
+
+            <div class="board-layout">
+                <div class="stage-board">
+                    {% for stage in project.stages.all %}
+                        <section class="stage-column">
+                            <div class="stage-column-header">
+                                <div class="stage-title-wrap">
+                                    <span class="stage-number">Stage {{ forloop.counter }}</span>
+                                    <div class="stage-title-row">
+                                        <h3 class="stage-name">{{ stage.title }}</h3>
+                                        <div class="stage-actions">
+                                            <a href="{% url 'update_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--edit" title="Edit stage" aria-label="Edit {{ stage.title }}">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
+                                                    <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
+                                                </svg>
+                                            </a>
+                                            <a href="{% url 'delete_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--delete" title="Delete stage" aria-label="Delete {{ stage.title }}">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
+                                                </svg>
+                                            </a>
+                                        </div>
                                     </div>
+                                </div>
+                                <span class="stage-count">{{ stage.tasks.count }} Tasks</span>
+                            </div>
+
+                            <div class="task-stack">
+                                {% for task in stage.tasks.all %}
+                                    {% if task in tasks %}
+                                        <article class="task-card {% if task.completed %}task-card--done{% endif %}">
+                                            <div class="task-status-row">
+                                                <span class="task-check {% if task.completed %}task-check--done{% endif %}">
+                                                    {% if task.completed %}✓{% else %}&nbsp;{% endif %}
+                                                </span>
+                                                <span class="task-priority task-priority--{{ task.priority|lower }}">{{ task.get_priority_display }}</span>
+                                            </div>
+
+                                            <h4 class="task-title {% if task.completed %}task-title--done{% endif %}">{{ task.title }}</h4>
+
+                                            <div class="task-footer">
+                                                <div class="task-owner">
+                                                    {% if task.owner %}
+                                                        <span class="task-avatar">{{ task.owner.username|slice:":1"|upper }}</span>
+                                                        <span class="task-owner-name">{{ task.owner.username }}</span>
+                                                    {% else %}
+                                                        <details class="assign-dropdown">
+                                                            <summary class="assign-trigger">Assign</summary>
+                                                            <form method="post" action="{% url 'assign_task' task.id %}" class="assign-menu">
+                                                                {% csrf_token %}
+                                                                {% for member in project_members %}
+                                                                    <button type="submit" name="choosen_user" value="{{ member.id }}" class="assign-member">
+                                                                        {{ member.get_full_name|default:member.username }}
+                                                                    </button>
+                                                                {% empty %}
+                                                                    <span class="assign-empty">No project members available</span>
+                                                                {% endfor %}
+                                                            </form>
+                                                        </details>
+                                                    {% endif %}
+                                                </div>
+                                                <span class="task-deadline">{{ task.deadline|date:"M d" }}</span>
+                                            </div>
+                                        </article>
+                                    {% endif %}
+                                {% empty %}
+                                    <div class="empty-task-slot">
+                                        No tasks yet
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    {% empty %}
+                        <p class="empty-stages">No stages added yet.</p>
+                    {% endfor %}
+                </div>
+
+                <aside class="members-panel">
+                    <div class="members-panel-header">
+                        <h3>Project Members</h3>
+                        <a href="{% url 'send_invitation' project.id %}" class="btn-primary invite-member-btn">Invite Member</a>
+                    </div>
+                    <div class="members-list">
+                        {% for member in project_members %}
+                            <div class="member-item">
+                                <span class="member-avatar">{{ member.username|slice:":1"|upper }}</span>
+                                <div class="member-text">
+                                    <span class="member-name">{{ member.get_full_name|default:member.username }}</span>
+                                    <span class="member-username">@{{ member.username }}</span>
                                 </div>
                             </div>
-                            <span class="stage-count">{{ stage.tasks.count }} Tasks</span>
-                        </div>
-
-                        <div class="task-stack">
-                            {% for task in stage.tasks.all %}
-                                <article class="task-card {% if task.completed %}task-card--done{% endif %}">
-                                    <div class="task-status-row">
-                                        <span class="task-check {% if task.completed %}task-check--done{% endif %}">
-                                            {% if task.completed %}✓{% else %}&nbsp;{% endif %}
-                                        </span>
-                                        <span class="task-priority task-priority--{{ task.priority|lower }}">{{ task.get_priority_display }}</span>
-                                    </div>
-
-                                    <h4 class="task-title {% if task.completed %}task-title--done{% endif %}">{{ task.title }}</h4>
-
-                                    <div class="task-footer">
-                                        <div class="task-owner">
-                                            <span class="task-avatar">{{ task.owner.username|default:"U"|slice:":1" }}</span>
-                                            <span class="task-owner-name">{% if task.owner %}{{ task.owner.username }}{% else %}Unassigned{% endif %}</span>
-                                        </div>
-                                        <span class="task-deadline">{{ task.deadline|date:"M d" }}</span>
-                                    </div>
-                                </article>
-                            {% empty %}
-                                <div class="empty-task-slot">
-                                    No tasks yet
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </section>
-                {% empty %}
-                    <p class="empty-stages">No stages added yet.</p>
-                {% endfor %}
+                        {% empty %}
+                            <p class="members-empty">No members in this project yet.</p>
+                        {% endfor %}
+                    </div>
+                </aside>
             </div>
         </div>
     </main>
 
     <style>
+        .dashboard-content{
+            max-width: 1200px;
+            margin: -30px 0px;
+        }
         .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) minmax(220px, 360px) auto;
+            align-items: center;
+            column-gap: 18px;
             margin-bottom: 32px;
             padding-bottom: 24px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -122,6 +209,51 @@
             margin: 0;
             color: #94a3b8;
             font-size: 0.95rem;
+        }
+
+        .header-progress {
+            display: grid;
+            gap: 8px;
+            width: 100%;
+            justify-items: center;
+        }
+
+        .progress-label {
+            color: #cbd5e1;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 12px;
+            border-radius: 999px;
+            overflow: hidden;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .progress-track::-webkit-progress-bar {
+            background: rgba(148, 163, 184, 0.25);
+            border-radius: 999px;
+        }
+
+        .progress-track::-webkit-progress-value {
+            background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+            border-radius: 999px;
+        }
+
+        .progress-track::-moz-progress-bar {
+            background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+            border-radius: 999px;
+        }
+
+        .progress-value {
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            font-weight: 700;
         }
 
         .header-actions {
@@ -201,286 +333,666 @@
             height: 16px;
         }
 
-        .content-wrap {
-            width: 100%;
-        }
+        .content-wrap{
+    width:100%;
+    max-width:none;
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+    
+}
 
-        .stage-board {
-            display: grid;
-            grid-auto-flow: column;
-            grid-auto-columns: minmax(280px, 320px);
-            gap: 18px;
-            align-items: start;
-            overflow-x: auto;
-            padding-bottom: 6px;
-        }
+    /* =========================
+    FILTER BAR
+    ========================= */
 
-        .stage-column {
-            min-height: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 14px;
-            padding: 18px;
-        }
+    .filter-panel{
+        width:100%;
+        display:flex;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:16px;
+        padding:18px 24px;
+        background:rgba(255,255,255,.04);
+        border:1px solid rgba(255,255,255,.08);
+        border-radius:14px;
+        margin-bottom:0;
+    }
 
-        .stage-column-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 18px;
-        }
+    .filter-title{
+        font-size:15px;
+        font-weight:700;
+        color:#d1d5db;
+        margin-right:8px;
+        white-space:nowrap;
+    }
 
-        .stage-title-wrap {
-            display: grid;
-            gap: 8px;
-        }
+    .filter-group{
+        display:flex;
+        align-items:center;
+        min-width:180px;
+    }
 
-        .stage-title-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+    .filter-group--inline{
+        flex-direction:row;
+    }
 
-        .stage-number {
-            display: inline-flex;
-            align-items: center;
-            width: fit-content;
-            padding: 5px 12px;
-            border-radius: 999px;
-            background: rgba(56, 189, 248, 0.14);
-            color: #7dd3fc;
-            font-size: 0.82rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-        }
+    .filter-group select{
+        width:180px;
+        height:42px;
+        padding:0 14px;
+        border-radius:8px;
+        border:1px solid rgba(255,255,255,.12);
+        background:#111827;
+        color:#fff;
+        font-size:14px;
+        outline:none;
+        transition:.25s;
+    }
 
-        .stage-name {
+    .filter-group select:hover{
+        border-color:#38bdf8;
+    }
+
+    .filter-group select:focus{
+        border-color:#38bdf8;
+        box-shadow:0 0 0 3px rgba(56,189,248,.15);
+    }
+
+    .filter-actions{
+        margin-left:auto;
+        display:flex;
+        align-items:center;
+        gap:12px;
+    }
+
+    .filter-actions .btn-primary,
+    .filter-actions .btn-secondary{
+        min-width:100px;
+        justify-content:center;
+    }
+
+    /* =========================
+    BOARD
+    ========================= */
+
+    .board-layout{
+        display:flex;
+        align-items:flex-start;
+        gap:24px;
+    }
+
+    .stage-board{
+        flex:1;
+        min-width:0;
+
+        display:flex;
+        gap:16px;
+
+        overflow-x:auto;
+        overflow-y:hidden;
+
+        padding-bottom:12px;
+    }
+
+    .stage-board::-webkit-scrollbar{
+        height:10px;
+    }
+
+    .stage-board::-webkit-scrollbar-thumb{
+        background:#5b5b5b;
+        border-radius:10px;
+    }
+
+    .stage-board::-webkit-scrollbar-track{
+        background:transparent;
+    }
+
+    .members-panel{
+        flex:0 0 280px;
+        width:280px;
+
+        position:sticky;
+        top:20px;
+
+        align-self:flex-start;
+    }
+
+        .members-panel h3 {
             margin: 0;
-            font-size: 1.08rem;
-            letter-spacing: -0.02em;
-            color: #f4f7ff;
+            font-size: 1rem;
+            color: #f8fafc;
         }
 
-        .stage-actions {
-            display: inline-flex;
+        .members-panel-header {
+            display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
         }
 
-        .stage-icon-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
-        }
-
-        .stage-icon-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .stage-icon-btn--edit {
-            background: rgba(59, 130, 246, 0.18);
-            color: #93c5fd;
-            border-color: rgba(59, 130, 246, 0.35);
-        }
-
-        .stage-icon-btn--edit:hover {
-            background: rgba(59, 130, 246, 0.28);
-            border-color: rgba(59, 130, 246, 0.5);
-        }
-
-        .stage-icon-btn--delete {
-            background: rgba(239, 68, 68, 0.18);
-            color: #fca5a5;
-            border-color: rgba(239, 68, 68, 0.35);
-        }
-
-        .stage-icon-btn--delete:hover {
-            background: rgba(239, 68, 68, 0.28);
-            border-color: rgba(239, 68, 68, 0.5);
-        }
-
-        .stage-count {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6px 10px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.06);
-            color: #cbd5e1;
-            font-size: 0.78rem;
-            font-weight: 700;
+        .invite-member-btn {
+            padding: 8px 12px;
+            font-size: 0.8rem;
             white-space: nowrap;
         }
 
-        .task-stack {
+        .members-list {
             display: grid;
-            gap: 14px;
+            gap: 10px;
         }
 
-        .task-card {
-            min-height: 148px;
-            border: 1px solid rgba(148, 163, 184, 0.35);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.94);
-            color: #0f172a;
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-        }
-
-        .task-card--done {
-            opacity: 0.88;
-        }
-
-        .task-status-row {
+        .member-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid rgba(148, 163, 184, 0.25);
         }
 
-        .task-check {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            border-radius: 3px;
-            border: 1px solid rgba(15, 23, 42, 0.35);
-            color: #2563eb;
-            font-size: 0.8rem;
-            font-weight: 800;
-            flex-shrink: 0;
-        }
-
-        .task-check--done {
-            border-color: #2563eb;
-            background: #eff6ff;
-        }
-
-        .task-priority {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: #fef3c7;
-            color: #b45309;
-            font-size: 0.76rem;
-            font-weight: 700;
-        }
-
-        .task-priority--low {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .task-priority--medium {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
-        .task-priority--high {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        .task-title {
-            margin: 12px 0 0;
-            font-size: 1.05rem;
-            line-height: 1.3;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .task-title--done {
-            text-decoration: line-through;
-            color: #334155;
-        }
-
-        .task-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .task-owner {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 0;
-        }
-
-        .task-avatar {
-            width: 28px;
-            height: 28px;
+        .member-avatar {
+            width: 30px;
+            height: 30px;
             border-radius: 999px;
             background: linear-gradient(135deg, #0f766e, #1d4ed8);
             color: #ffffff;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 800;
             flex-shrink: 0;
         }
 
-        .task-owner-name,
-        .task-deadline {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #334155;
+        .member-text {
+            display: grid;
+            gap: 2px;
+            min-width: 0;
         }
 
-        .task-owner-name {
+        .member-name,
+        .member-username {
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
-        .task-deadline {
-            color: #dc2626;
-            white-space: nowrap;
+        .member-name {
+            color: #f8fafc;
+            font-size: 0.87rem;
+            font-weight: 700;
         }
 
-        .empty-task-slot {
-            min-height: 148px;
-            border: 1px dashed rgba(148, 163, 184, 0.35);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.55);
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        .empty-stages {
+        .member-username {
             color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .members-empty {
             margin: 0;
+            color: #94a3b8;
+            font-size: 0.85rem;
         }
 
-        @media (max-width: 640px) {
-            .header-actions {
-                align-items: flex-start;
-            }
+        /* =========================
+   STAGE COLUMN
+========================= */
 
-            .action-row {
-                justify-content: flex-start;
-            }
+    .stage-column{
+        flex:0 0 260px;
+        display:flex;
+        flex-direction:column;
+        background:#1f2937;
+        border:1px solid rgba(255,255,255,.08);
+        border-radius:16px;
+        padding:14px;
+        min-height:420px;
+    }
 
-            .stage-board {
-                grid-auto-columns: minmax(260px, 1fr);
-            }
-        }
+    .stage-column-header{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:12px;
+        margin-bottom:20px;
+    }
+
+    .stage-title-wrap{
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+    }
+
+    .stage-title-row{
+        display:flex;
+        align-items:center;
+        gap:8px;
+    }
+
+    .stage-number{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        width:max-content;
+        padding:5px 12px;
+        border-radius:999px;
+        background:#0ea5e920;
+        color:#38bdf8;
+        font-size:13px;
+        font-weight:700;
+    }
+
+    .stage-name{
+        margin:0;
+        color:#fff;
+        font-size:20px;
+        font-weight:700;
+    }
+
+    .stage-count{
+        background:#374151;
+        color:#d1d5db;
+        padding:6px 12px;
+        border-radius:999px;
+        font-size:12px;
+        font-weight:700;
+        white-space:nowrap;
+    }
+
+    .stage-actions{
+        display:flex;
+        gap:8px;
+    }
+
+    .stage-icon-btn{
+        width:32px;
+        height:32px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:8px;
+        text-decoration:none;
+        transition:.25s;
+    }
+
+    .stage-icon-btn--edit{
+        background:#2563eb25;
+        color:#60a5fa;
+    }
+
+    .stage-icon-btn--delete{
+        background:#ef444425;
+        color:#f87171;
+    }
+
+    .stage-icon-btn:hover{
+        transform:translateY(-2px);
+    }
+
+    /* =========================
+    TASK STACK
+    ========================= */
+
+    .task-stack{
+        display:flex;
+        flex-direction:column;
+        gap:16px;
+    }
+
+    /* =========================
+    TASK CARD
+    ========================= */
+
+    .task-card{
+        background:#ffffff;
+        border-radius:10px;
+        padding:14px;
+        min-height:120px;
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+        box-shadow:0 12px 25px rgba(0,0,0,.18);
+        transition:.25s;
+    }
+
+    .task-card:hover{
+        transform:translateY(-4px);
+    }
+
+    .task-card--done{
+        opacity:.82;
+    }
+
+    .task-status-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    }
+
+    .task-check{
+        width:20px;
+        height:20px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        border:2px solid #94a3b8;
+        border-radius:4px;
+        font-weight:bold;
+        color:#2563eb;
+    }
+
+    .task-check--done{
+        background:#2563eb;
+        border-color:#2563eb;
+        color:#fff;
+    }
+
+    .task-priority{
+        padding:4px 10px;
+        border-radius:999px;
+        font-size:12px;
+        font-weight:700;
+    }
+
+    .task-priority--low{
+        background:#dcfce7;
+        color:#15803d;
+    }
+
+    .task-priority--medium{
+        background:#fef3c7;
+        color:#b45309;
+    }
+
+    .task-priority--high{
+        background:#fee2e2;
+        color:#dc2626;
+    }
+
+    .task-title{
+        margin:12px 0;
+        font-size:20px;
+        font-weight:700;
+        color:#111827;
+    }
+
+    .task-title--done{
+        text-decoration:line-through;
+        color:#64748b;
+    }
+
+    .task-footer{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    }
+
+    .task-owner{
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+
+    .task-avatar{
+        width:34px;
+        height:34px;
+        border-radius:50%;
+        background:linear-gradient(135deg,#0891b2,#2563eb);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#fff;
+        font-weight:700;
+    }
+
+    .task-owner-name{
+        color:#374151;
+        font-weight:600;
+    }
+
+    .task-deadline{
+        color:#dc2626;
+        font-weight:700;
+    }
+
+    .empty-task-slot{
+        height:170px;
+        border:2px dashed rgba(255,255,255,.15);
+        border-radius:12px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        color:#9ca3af;
+    }
+
+    .empty-stages{
+        color:#94a3b8;
+        font-size:18px;
+    }
+
+    /* =========================
+   ASSIGN DROPDOWN
+========================= */
+
+    .assign-dropdown{
+        position:relative;
+        display:inline-block;
+    }
+
+    .assign-dropdown summary{
+        list-style:none;
+    }
+
+    .assign-dropdown summary::-webkit-details-marker{
+        display:none;
+    }
+
+    .assign-trigger{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:6px 14px;
+        border:1px solid #93c5fd;
+        border-radius:999px;
+        background:#e0ecff;
+        color:#2563eb;
+        font-size:13px;
+        font-weight:600;
+        cursor:pointer;
+        transition:all .2s ease;
+    }
+
+    .assign-trigger:hover{
+        background:#dbeafe;
+    }
+
+    .assign-dropdown[open] .assign-trigger{
+        background:#bfdbfe;
+    }
+
+    .assign-menu{
+    position:absolute;
+    top:calc(100% + 8px);
+    left:0;
+
+    min-width:160px;
+
+    background:#f8fafc;
+    border:1px solid #dbe4f0;
+    border-radius:12px;
+
+    padding:8px;
+
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+
+    box-shadow:0 12px 30px rgba(0,0,0,.18);
+    z-index:1000;
+    }
+
+        .assign-member{
+        width:100%;
+
+        border:none;
+        outline:none;
+
+        background:#dfe8f8;
+        color:#1d4ed8;
+
+        text-align:left;
+
+        padding:10px 14px;
+        border-radius:10px;
+
+        font-size:14px;
+        font-weight:600;
+
+        cursor:pointer;
+        transition:.2s ease;
+    }
+
+    .assign-member:hover{
+        background:#c9d8f6;
+    }
+    .assign-empty{
+        display:block;
+        padding:12px;
+        text-align:center;
+        color:#64748b;
+        font-size:13px;
+    }
+
+        /* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width:1200px){
+
+    .board-layout{
+        display:flex;
+        flex-direction:column;
+    }
+
+    .members-panel{
+        position:static;
+        width:100%;
+        margin-top:24px;
+    }
+
+}
+
+@media (max-width:992px){
+
+    .page-header{
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        gap:20px;
+    }
+
+    .header-progress{
+        width:100%;
+        justify-items:flex-start;
+    }
+
+    .header-actions{
+        width:100%;
+        align-items:flex-start;
+    }
+
+    .action-row{
+        justify-content:flex-start;
+    }
+
+    .filter-panel{
+        gap:12px;
+    }
+
+    .filter-group{
+        flex:1 1 220px;
+        min-width:220px;
+    }
+
+    .filter-group select{
+        width:100%;
+    }
+
+    .filter-actions{
+        margin-left:0;
+        width:100%;
+        justify-content:flex-end;
+    }
+
+}
+
+@media (max-width:768px){
+
+    .filter-panel{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .filter-title{
+        margin-bottom:8px;
+    }
+
+    .filter-group{
+        width:100%;
+        min-width:100%;
+    }
+
+    .filter-group select{
+        width:100%;
+    }
+
+    .filter-actions{
+        width:100%;
+        margin-top:8px;
+    }
+
+    .filter-actions .btn-primary,
+    .filter-actions .btn-secondary{
+        flex:1;
+    }
+
+    .stage-column{
+        flex:0 0 300px;
+    }
+
+}
+
+@media (max-width:576px){
+
+    .page-header h1{
+        font-size:1.6rem;
+    }
+
+    .stage-column{
+        flex:0 0 280px;
+    }
+
+    .task-card{
+        min-height:160px;
+        padding:16px;
+    }
+
+    .task-title{
+        font-size:18px;
+    }
+
+    .task-footer{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+    }
+
+    
+
+}
     </style>
+</body>
+</html>
