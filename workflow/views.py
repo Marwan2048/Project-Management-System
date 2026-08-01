@@ -149,7 +149,6 @@ class DeleteStageView(LoginRequiredMixin , DeleteView):
     context_object_name = "stage"
 
     def get_success_url(self):
-            print(self.kwargs)
             return reverse_lazy("detail_project" , kwargs = {"pk": self.object.project.id})
 
 class CreateTask(LoginRequiredMixin , CreateView):
@@ -320,3 +319,15 @@ class InvitationDecisionView(LoginRequiredMixin , View):
         invitation.save()
 
         return redirect("home")
+    
+class AssignTaskView(LoginRequiredMixin , View):
+    
+    def post(self, request, pk , *args, **kwargs):
+
+        task = get_object_or_404(Task , pk = pk)
+        user_id = self.request.POST.get("choosen_user")
+        user = User.objects.get(id = user_id)
+        task.owner = user
+        task.save()
+
+        return redirect(reverse_lazy("detail_project", kwargs = {"pk":task.stage.project.id}))
