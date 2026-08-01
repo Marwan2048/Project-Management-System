@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (Register, ProjectListView, CreateProject , ProjectDetailView , UpdateProjectView , DeleteProjectView , CreateTask , 
-                    UpdateStageView , DeleteStageView, SendInvitationView, InvitationsListView)
+                    UpdateStageView , DeleteStageView, SendInvitationView, InvitationsListView , InvitationDecisionView )
 
 from django.contrib.auth.views import LoginView, LogoutView
 
@@ -18,5 +18,6 @@ urlpatterns = [
     path("project/<int:pk>/create_task/" , CreateTask.as_view() , name="create_task"),
     path("project/<int:pk>/invite/" , SendInvitationView.as_view(), name="send_invitation"),
     path("invitations/" , InvitationsListView.as_view(), name="invitations_list"),
+    path("invitation/<int:pk>/action/" , InvitationDecisionView.as_view(), name="invitation_action"),
 
 ]

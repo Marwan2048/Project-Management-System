@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy 
 from django.views.generic import CreateView , ListView , DetailView , UpdateView , DeleteView , View
 from .forms import RegisterForm , ProjectCreationForm , TaskCreationForm , StageCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Project , User_Role , Task , Role , Stage , Invitation
 from django.contrib.auth.models import User
 from django.db.models import Count , Q
+from django.shortcuts import redirect
 
 class Register(CreateView):
     form_class = RegisterForm
@@ -18,41 +19,75 @@ class ProjectListView(LoginRequiredMixin, ListView):
     context_object_name = "projects"
 
     def get_queryset(self):
-        return (
+        projects = Project.objects.filter(projects__user=self.request.user)
+
+        for project in projects:
+            completed_tasks_count = Task.objects.filter(
+                stage__project=project,
+                completed=True
+            ).count()
+
+            total_tasks_count = Task.objects.filter(
+                stage__project=project
+            ).count()
+
+            if total_tasks_count > 0:
+                project.progress = (completed_tasks_count / total_tasks_count) * 100
+
+                if completed_tasks_count == total_tasks_count:
+                    project.state = "COMPLETED"
+                elif completed_tasks_count > 0:
+                    project.state = "IN PROGRESS"
+                else:
+                    project.state = "NO PROGRESS"
+            else:
+                project.progress = 0
+                project.state = "NO PROGRESS"
+
+            project.save()
+
+        projects = (
             Project.objects.filter(
                 projects__user=self.request.user,
-                state__in=["NO PROGRESS", "IN PROGRESS"]
+                state__in=["NO PROGRESS", "IN PROGRESS"],
             )
             .annotate(
                 total_tasks=Count("stages__tasks", distinct=True),
                 completed_tasks=Count(
                     "stages__tasks",
                     filter=Q(stages__tasks__completed=True),
-                    distinct=True
-                )
+                    distinct=True,
+                ),
             )
         )
-    
-    def get_context_data(self, **kwargs):
-        context =  super().get_context_data(**kwargs)
 
-        context["num_of_tasks"] = Task.objects.filter(
-            completed = False ,
-            owner = self.request.user).count()
-        
-        context["num_of_active_projects"] = Project.objects.filter(
-            state__in = ["NO PROGRESS" , "IN PROGRESS"],
-            projects__user = self.request.user).count()
-        
-        context["completed_projects"] = Project.objects.filter(
-            projects__user = self.request.user,
-            state = "COMPLETED").count()
-
-        for project in context["projects"]:
-            if project.total_tasks > 0:
-                project.progress = (project.completed_tasks / project.total_tasks) * 100
+        for project in projects:
+            if project.total_tasks:
+                project.progress = (
+                    project.completed_tasks / project.total_tasks
+                ) * 100
             else:
                 project.progress = 0
+
+        return projects
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["num_of_tasks"] = Task.objects.filter(
+            completed=False,
+            owner=self.request.user,
+        ).count()
+
+        context["num_of_active_projects"] = Project.objects.filter(
+            projects__user=self.request.user,
+            state__in=["NO PROGRESS", "IN PROGRESS"],
+        ).count()
+
+        context["completed_projects"] = Project.objects.filter(
+            projects__user=self.request.user,
+            state="COMPLETED",
+        ).count()
 
         return context
     
@@ -241,7 +276,7 @@ class SendInvitationView(LoginRequiredMixin , View):
             project=project,
             sender=request.user,
             receiver=receiver,
-            defaults={"state": "PENDING"},
+            state ="PENDING"
         )
 
         if created:
@@ -267,3 +302,21 @@ class InvitationsListView(LoginRequiredMixin , ListView):
     def get_queryset(self):
         queryset = Invitation.objects.filter(state = "PENDING" , receiver = self.request.user)
         return queryset
+
+class InvitationDecisionView(LoginRequiredMixin , View):
+   
+    def post(self, request, pk):
+        invitation = get_object_or_404(Invitation , pk = pk)
+        decision = self.request.POST.get("decision")
+
+        if decision == "accept":
+            User_Role.objects.create(user = self.request.user ,
+                                     role = Role.objects.get(role = "MEMBER") ,
+                                     project = invitation.project) 
+            invitation.state = "ACCEPTED"
+
+        else:
+            invitation.state = "DECLINED"
+        invitation.save()
+
+        return redirect("home")

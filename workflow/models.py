@@ -81,8 +81,6 @@ class Invitation(models.Model):
     receiver = models.ForeignKey(User , on_delete=models.CASCADE ,  related_name="received_invitations")
     state = models.CharField(max_length=20 , choices = states , default= "PENDING")
     invitation_time = models.DateField(auto_now_add=True , blank = True)
-
-    class Meta:
-        unique_together = ("project" , "sender" , "receiver")
+    
     def __str__(self):
-        return f"{self.sender} sent invitation to {self.receiver}" 
+        return f"{self.sender} sent invitation to {self.receiver} to join {self.project} Project " 
