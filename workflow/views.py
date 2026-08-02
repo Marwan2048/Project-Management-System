@@ -197,6 +197,8 @@ class ProjectDetailView(LoginRequiredMixin , DetailView):
         completed_tasks_count = Task.objects.filter(stage__project = self.object , completed = True).count()
         total_tasks_count = Task.objects.filter(stage__project = self.object ).count()
         progress = (completed_tasks_count / total_tasks_count) * 100 if total_tasks_count > 0 else 0
+        project = Project.objects.get(id = self.object.id)
+        team_leader_user = User_Role.objects.get(role = Role.objects.get(role = "TEAM LEADER") , project = project).user
 
         context["tasks"] = tasks
         context["overall_progress"] = progress
@@ -204,6 +206,7 @@ class ProjectDetailView(LoginRequiredMixin , DetailView):
         context["selected_priority"] = priority
         context["selected_completed"] = completed
         context["project_members"] = User.objects.filter(users__project=self.object).distinct()
+        context["is_team_leader"] = team_leader_user == self.request.user
         return context
 
 class SendInvitationView(LoginRequiredMixin , View):
@@ -331,3 +334,34 @@ class AssignTaskView(LoginRequiredMixin , View):
         task.save()
 
         return redirect(reverse_lazy("detail_project", kwargs = {"pk":task.stage.project.id}))
+
+class CompleteTaskView(LoginRequiredMixin , View):
+
+    def post(self , request , pk):
+
+        task = get_object_or_404(Task , pk = pk)
+        task.completed = True
+        task.save()
+        return redirect(reverse_lazy("detail_project", kwargs = {"pk":task.stage.project.id}))
+
+class ChangeTaskOwnerView(LoginRequiredMixin , View):
+
+    def post(self, request , pk ,*args, **kwargs):
+        new_owner_id = self.request.POST.get("new_owner")
+        user = get_object_or_404(User , id = new_owner_id)
+        task = get_object_or_404(Task , pk = pk)
+        task.owner = user
+        task.save()
+        
+        return redirect(reverse_lazy("detail_project", kwargs = {"pk":task.stage.project.id}))
+
+class RemoveMemberView(LoginRequiredMixin , View):
+
+    def post(self, request, pk ,project_id ,*args, **kwargs):
+
+        project = get_object_or_404(Project , id = project_id)
+        user = get_object_or_404(User , id = pk)
+        object = User_Role.objects.get(project = project , user = user)
+        object.delete()
+
+        return redirect(reverse_lazy("detail_project", kwargs = {"pk":project.id}))

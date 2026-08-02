@@ -19,19 +19,27 @@
                 {% for invitation in invitations %}
                     <article class="invitation-item">
                         <div class="invitation-main">
-                            <h3>{{ invitation.project.title }}</h3>
+
+                            <div class="invitation-title">
+                                <h3>{{ invitation.project.title }}</h3>
+                                <span class="invitation-state">
+                                    {{ invitation.get_state_display }}
+                                </span>
+                            </div>
+
                             <p>
                                 From <strong>{{ invitation.sender.username }}</strong>
                                 on {{ invitation.invitation_time|date:"M d, Y" }}
                             </p>
                         </div>
+
                         <div class="invitation-actions">
-                            <span class="invitation-state">{{ invitation.get_state_display }}</span>
                             <form method="post" action="{% url 'invitation_action' invitation.id %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="decision" value="accept">
                                 <button type="submit" class="btn-accept">Accept</button>
                             </form>
+
                             <form method="post" action="{% url 'invitation_action' invitation.id %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="decision" value="decline">
@@ -87,16 +95,21 @@
             padding: 14px;
         }
 
-        .invitation-actions {
+        .invitation-main {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .invitation-title {
             display: flex;
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
-            justify-content: flex-end;
         }
 
         .invitation-main h3 {
-            margin: 0 0 4px;
+            margin: 0;
             color: #f8fafc;
             font-size: 1rem;
         }
@@ -105,6 +118,14 @@
             margin: 0;
             color: #cbd5e1;
             font-size: 0.9rem;
+        }
+
+        .invitation-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .invitation-state {
