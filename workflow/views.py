@@ -362,6 +362,15 @@ class RemoveMemberView(LoginRequiredMixin , View):
         project = get_object_or_404(Project , id = project_id)
         user = get_object_or_404(User , id = pk)
         object = User_Role.objects.get(project = project , user = user)
-        object.delete()
 
-        return redirect(reverse_lazy("detail_project", kwargs = {"pk":project.id}))
+        role_id = Role.objects.get(role = "TEAM LEADER")
+        team_leader = User.objects.get(users__role = role_id , users__project = project)
+        
+        Task.objects.filter(stage__project=project , owner=user).update(owner=None)
+        object.delete()
+        
+        if self.request.user == team_leader and user != team_leader:            
+            return redirect(reverse_lazy("detail_project", kwargs = {"pk":project.id}))
+
+        return redirect(reverse_lazy("home"))
+    
