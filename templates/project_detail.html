@@ -22,27 +22,31 @@
 
         <div class="header-actions">
             <div class="action-row">
-            <a href="{% url 'update_project' project.id %}" class="btn-secondary" title="Edit project">
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
-                    <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
-                </svg>
-                Edit
-            </a>
-            <a href="{% url 'delete_project' project.id %}" class="btn-danger" title="Delete project">
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
-                </svg>
-                Delete
-            </a>
+            {% if is_team_leader %}
+                <a href="{% url 'update_project' project.id %}" class="btn-secondary" title="Edit project">
+                    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
+                        <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
+                    </svg>
+                    Edit
+                </a>
+                <a href="{% url 'delete_project' project.id %}" class="btn-danger" title="Delete project">
+                    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
+                    </svg>
+                    Delete
+                </a>
+            {% endif %}
             </div>
-            <a href="{% url 'create_task' project.id %}" class="btn-primary add-task-btn" title="Add task to project">
-                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2.5V13.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                    <path d="M2.5 8H13.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                </svg>
-                Add Task
-            </a>
+            {% if is_team_leader %}
+                <a href="{% url 'create_task' project.id %}" class="btn-primary add-task-btn" title="Add task to project">
+                    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 2.5V13.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        <path d="M2.5 8H13.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                    Add Task
+                </a>
+            {% endif %}
         </div>
     </header>
 
@@ -92,19 +96,21 @@
                                     <span class="stage-number">Stage {{ forloop.counter }}</span>
                                     <div class="stage-title-row">
                                         <h3 class="stage-name">{{ stage.title }}</h3>
-                                        <div class="stage-actions">
-                                            <a href="{% url 'update_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--edit" title="Edit stage" aria-label="Edit {{ stage.title }}">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
-                                                    <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
-                                                </svg>
-                                            </a>
-                                            <a href="{% url 'delete_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--delete" title="Delete stage" aria-label="Delete {{ stage.title }}">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
-                                                </svg>
-                                            </a>
-                                        </div>
+                                        {% if is_team_leader %}
+                                            <div class="stage-actions">
+                                                <a href="{% url 'update_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--edit" title="Edit stage" aria-label="Edit {{ stage.title }}">
+                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
+                                                        <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
+                                                    </svg>
+                                                </a>
+                                                <a href="{% url 'delete_stage' stage.id %}" class="stage-icon-btn stage-icon-btn--delete" title="Delete stage" aria-label="Delete {{ stage.title }}">
+                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <span class="stage-count">{{ stage.tasks.count }} Tasks</span>
@@ -128,33 +134,39 @@
                                                     {% if task.owner %}
                                                         <span class="task-avatar">{{ task.owner.username|slice:":1"|upper }}</span>
                                                         <span class="task-owner-name">{{ task.owner.username }}</span>
-                                                        <details class="assign-dropdown">
-                                                            <summary class="assign-trigger">Change</summary>
-                                                            <form method="post" action="{% url 'change_task' task.id %}" class="assign-menu">
-                                                                {% csrf_token %}
-                                                                {% for member in project_members %}
-                                                                    <button type="submit" name="new_owner" value="{{ member.id }}" class="assign-member">
-                                                                        {{ member.get_full_name|default:member.username }}
-                                                                    </button>
-                                                                {% empty %}
-                                                                    <span class="assign-empty">No project members available</span>
-                                                                {% endfor %}
-                                                            </form>
-                                                        </details>
+                                                        {% if is_team_leader %}
+                                                            <details class="assign-dropdown">
+                                                                <summary class="assign-trigger">Change</summary>
+                                                                <form method="post" action="{% url 'change_task' task.id %}" class="assign-menu">
+                                                                    {% csrf_token %}
+                                                                    {% for member in project_members %}
+                                                                        <button type="submit" name="new_owner" value="{{ member.id }}" class="assign-member">
+                                                                            {{ member.get_full_name|default:member.username }}
+                                                                        </button>
+                                                                    {% empty %}
+                                                                        <span class="assign-empty">No project members available</span>
+                                                                    {% endfor %}
+                                                                </form>
+                                                            </details>
+                                                        {% endif %}
                                                     {% else %}
-                                                        <details class="assign-dropdown">
-                                                            <summary class="assign-trigger">Assign</summary>
-                                                            <form method="post" action="{% url 'assign_task' task.id %}" class="assign-menu">
-                                                                {% csrf_token %}
-                                                                {% for member in project_members %}
-                                                                    <button type="submit" name="choosen_user" value="{{ member.id }}" class="assign-member">
-                                                                        {{ member.get_full_name|default:member.username }}
-                                                                    </button>
-                                                                {% empty %}
-                                                                    <span class="assign-empty">No project members available</span>
-                                                                {% endfor %}
-                                                            </form>
-                                                        </details>
+                                                        {% if is_team_leader %}
+                                                            <details class="assign-dropdown">
+                                                                <summary class="assign-trigger">Assign</summary>
+                                                                <form method="post" action="{% url 'assign_task' task.id %}" class="assign-menu">
+                                                                    {% csrf_token %}
+                                                                    {% for member in project_members %}
+                                                                        <button type="submit" name="choosen_user" value="{{ member.id }}" class="assign-member">
+                                                                            {{ member.get_full_name|default:member.username }}
+                                                                        </button>
+                                                                    {% empty %}
+                                                                        <span class="assign-empty">No project members available</span>
+                                                                    {% endfor %}
+                                                                </form>
+                                                            </details>
+                                                        {% else %}
+                                                            <span class="task-owner-name">Unassigned</span>
+                                                        {% endif %}
                                                     {% endif %}
                                                 </div>
                                                 <div class="task-meta-actions">
@@ -186,7 +198,9 @@
                 <aside class="members-panel">
                     <div class="members-panel-header">
                         <h3>Project Members</h3>
-                        <a href="{% url 'send_invitation' project.id %}" class="btn-primary invite-member-btn">Invite Member</a>
+                        {% if is_team_leader %}
+                            <a href="{% url 'send_invitation' project.id %}" class="btn-primary invite-member-btn">Invite Member</a>
+                        {% endif %}
                     </div>
                     <div class="members-list">
                         {% for member in project_members %}
@@ -693,6 +707,17 @@
     .stage-actions{
         display:flex;
         gap:8px;
+        opacity:0;
+        pointer-events:none;
+        transform:translateY(-2px);
+        transition:opacity 180ms ease, transform 180ms ease;
+    }
+
+    .stage-column:hover .stage-actions,
+    .stage-column:focus-within .stage-actions{
+        opacity:1;
+        pointer-events:auto;
+        transform:translateY(0);
     }
 
     .stage-icon-btn{
@@ -718,6 +743,14 @@
 
     .stage-icon-btn:hover{
         transform:translateY(-2px);
+    }
+
+    @media (hover: none) {
+        .stage-actions{
+            opacity:1;
+            pointer-events:auto;
+            transform:none;
+        }
     }
 
     /* =========================

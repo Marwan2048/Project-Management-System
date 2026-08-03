@@ -64,19 +64,23 @@
                                 <span class="project-card-meta">Started {{ project.start_date|date:"M d, Y" }}</span>
                             </div>
                         </a>
-                        <div class="project-card-actions">
-                            <a href="{% url 'update_project' project.id %}" class="btn-card-action btn-edit" title="Edit project">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
-                                    <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
-                                </svg>
-                            </a>
-                            <a href="{% url 'delete_project' project.id %}" class="btn-card-action btn-delete" title="Delete project">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
-                                </svg>
-                            </a>
-                        </div>
+                        {% with project_leader=project.projects.all|first %}
+                            {% if project_leader and project_leader.user == user and project_leader.role.role == "TEAM LEADER" %}
+                                <div class="project-card-actions">
+                                    <a href="{% url 'update_project' project.id %}" class="btn-card-action btn-edit" title="Edit project">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M2.5 13.5H3.16L11.35 5.31L10.69 4.65L2.5 12.84V13.5Z" fill="currentColor"/>
+                                            <path d="M13.85 3.15L12.85 2.15L13.52 1.48C13.86 1.14 14.42 1.14 14.76 1.48L15.52 2.24C15.86 2.58 15.86 3.14 15.52 3.48L13.85 3.15Z" fill="currentColor"/>
+                                        </svg>
+                                    </a>
+                                    <a href="{% url 'delete_project' project.id %}" class="btn-card-action btn-delete" title="Delete project">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M13 3H10V2H6V3H3V4H4V13C4 13.55 4.45 14 5 14H11C11.55 14 12 13.55 12 13V4H13V3ZM6 12H5V5H6V12ZM8 12H7V5H8V12ZM10 12H9V5H10V12Z" fill="currentColor"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
                     </div>
                 {% empty %}
                     <div class="empty-state">

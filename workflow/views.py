@@ -7,6 +7,7 @@ from .models import Project , User_Role , Task , Role , Stage , Invitation
 from django.contrib.auth.models import User
 from django.db.models import Count , Q
 from django.shortcuts import redirect
+from django.core.exceptions import PermissionDenied
 
 class Register(CreateView):
     form_class = RegisterForm
@@ -116,6 +117,13 @@ class UpdateProjectView(LoginRequiredMixin , UpdateView):
     form_class = ProjectCreationForm
     template_name = "edit_project.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        project = self.get_object()
+        is_team_leader = User_Role.objects.filter(project = project , user = self.request.user , role__role ="TEAM LEADER").exists()
+        if not is_team_leader: 
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['existing_stages'] = Stage.objects.filter(project = self.kwargs.get("pk"))
@@ -123,7 +131,8 @@ class UpdateProjectView(LoginRequiredMixin , UpdateView):
 
     def form_valid(self, form):
         new_stage = self.request.POST.get("new_stage_title")
-        Stage.objects.create(title = new_stage , project = self.object)
+        if new_stage:
+            Stage.objects.create(title = new_stage , project = self.object)
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -134,11 +143,25 @@ class DeleteProjectView(LoginRequiredMixin , DeleteView):
     template_name = "delete_project_confirm.html"
     success_url = reverse_lazy("home")
 
+    def dispatch(self, request, *args, **kwargs):
+        project = self.get_object()
+        is_team_leader = User_Role.objects.filter(project = project , user = self.request.user , role__role ="TEAM LEADER").exists()
+        if not is_team_leader: 
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
 class UpdateStageView(LoginRequiredMixin , UpdateView):
     model = Stage
     form_class = StageCreationForm
     template_name = "edit_stage.html"
     context_object_name = "stage"
+
+    def dispatch(self, request, *args, **kwargs):
+        stage = self.get_object()
+        is_team_leader = User_Role.objects.filter(project = stage.project , user = self.request.user , role__role ="TEAM LEADER").exists()
+        if not is_team_leader: 
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse_lazy("detail_project" , kwargs = {"pk": self.object.id})
@@ -148,6 +171,13 @@ class DeleteStageView(LoginRequiredMixin , DeleteView):
     template_name = "delete_stage_confirm.html"
     context_object_name = "stage"
 
+    def dispatch(self, request, *args, **kwargs):
+        stage = self.get_object()
+        is_team_leader = User_Role.objects.filter(project = stage.project , user = self.request.user , role__role ="TEAM LEADER").exists()
+        if not is_team_leader: 
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)   
+
     def get_success_url(self):
             return reverse_lazy("detail_project" , kwargs = {"pk": self.object.project.id})
 
@@ -155,6 +185,13 @@ class CreateTask(LoginRequiredMixin , CreateView):
     model = Task
     form_class = TaskCreationForm
     template_name = "create_task.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        project = get_object_or_404(Project, pk=self.kwargs["pk"])
+        is_team_leader = User_Role.objects.filter(project = project , user = self.request.user , role__role ="TEAM LEADER").exists()
+        if not is_team_leader: 
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)  
 
     def get_context_data(self, **kwargs):
         context =  super().get_context_data(**kwargs)
@@ -175,6 +212,15 @@ class ProjectDetailView(LoginRequiredMixin , DetailView):
     model = Project
     template_name = "project_detail.html"
     context_object_name = "project"
+
+    def dispatch(self, request, *args, **kwargs):
+        project = self.get_object()
+        is_member = User_Role.objects.filter(project = project , user = self.request.user).exists()
+
+        if not is_member:
+            raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -211,6 +257,16 @@ class ProjectDetailView(LoginRequiredMixin , DetailView):
 
 class SendInvitationView(LoginRequiredMixin , View):
     template_name = "invite_member.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        project = get_object_or_404(Project, pk=self.kwargs["pk"])
+
+        is_team_leader = User_Role.objects.filter(project=project,user=request.user,role__role="TEAM LEADER").exists()
+
+        if not is_team_leader:
+            raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
         project = get_object_or_404(Project, pk=pk)
@@ -308,7 +364,7 @@ class InvitationsListView(LoginRequiredMixin , ListView):
 class InvitationDecisionView(LoginRequiredMixin , View):
    
     def post(self, request, pk):
-        invitation = get_object_or_404(Invitation , pk = pk)
+        invitation = get_object_or_404(Invitation , pk = pk , receiver = self.request.user , state = "PENDING")
         decision = self.request.POST.get("decision")
 
         if decision == "accept":
@@ -324,6 +380,20 @@ class InvitationDecisionView(LoginRequiredMixin , View):
         return redirect("home")
     
 class AssignTaskView(LoginRequiredMixin , View):
+
+    def dispatch(self, request, *args, **kwargs):
+        task = get_object_or_404(Task, pk=self.kwargs["pk"])
+
+        is_team_leader = User_Role.objects.filter(
+            project=task.stage.project,
+            user=request.user,
+            role__role="TEAM LEADER"
+        ).exists()
+
+        if not is_team_leader:
+            raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)
     
     def post(self, request, pk , *args, **kwargs):
 
@@ -337,6 +407,17 @@ class AssignTaskView(LoginRequiredMixin , View):
 
 class CompleteTaskView(LoginRequiredMixin , View):
 
+    def dispatch(self, request, *args, **kwargs):
+
+        task = get_object_or_404(Task, pk=self.kwargs["pk"])
+        is_owner = self.request.user == task.owner
+
+        if task.owner != request.user:
+            raise PermissionDenied
+
+
+        return super().dispatch(request, *args, **kwargs)
+
     def post(self , request , pk):
 
         task = get_object_or_404(Task , pk = pk)
@@ -345,6 +426,21 @@ class CompleteTaskView(LoginRequiredMixin , View):
         return redirect(reverse_lazy("detail_project", kwargs = {"pk":task.stage.project.id}))
 
 class ChangeTaskOwnerView(LoginRequiredMixin , View):
+
+
+    def dispatch(self, request, *args, **kwargs):
+        task = get_object_or_404(Task, pk=self.kwargs["pk"])
+
+        is_team_leader = User_Role.objects.filter(
+            project=task.stage.project,
+            user=request.user,
+            role__role="TEAM LEADER"
+        ).exists()
+
+        if not is_team_leader:
+            raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)
 
     def post(self, request , pk ,*args, **kwargs):
         new_owner_id = self.request.POST.get("new_owner")
@@ -356,6 +452,23 @@ class ChangeTaskOwnerView(LoginRequiredMixin , View):
         return redirect(reverse_lazy("detail_project", kwargs = {"pk":task.stage.project.id}))
 
 class RemoveMemberView(LoginRequiredMixin , View):
+
+    def dispatch(self, request, *args, **kwargs):
+        project = get_object_or_404(Project, pk=self.kwargs["project_id"])
+        user_to_remove = get_object_or_404(User, pk=self.kwargs["pk"])
+
+        is_team_leader = User_Role.objects.filter(
+            project=project,
+            user=request.user,
+            role__role="TEAM LEADER"
+        ).exists()
+
+        is_removing_self = request.user == user_to_remove
+
+        if not (is_team_leader or is_removing_self):
+            raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, pk ,project_id ,*args, **kwargs):
 
